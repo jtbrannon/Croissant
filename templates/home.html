@@ -1,12 +1,319 @@
 <!-- templates/home.html -->
 {% extends 'base.html' %}
-
+{% load static %}
 {% block title %}Home{% endblock %}
 
 {% block content %}
+<head><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#212121">
+  <meta name="msapplication-TileColor" content="#212121"/>
+
+  <!--Text Editor-->
+  <link href="//cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <link href="//cdn.quilljs.com/1.3.6/quill.bubble.css" rel="stylesheet">
+
+  <!--Calculator-->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link rel="stylesheet" href="{% static 'css/creative.css' %}">
+  <!--<link rel="stylesheet" href="{% static 'css/creative.min.css' %}">-->
+  <link href="//cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+  <!--Calendar-->
+  <link rel="stylesheet" type="text/css" href="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.css" />
+
+  <!-- If you use the default popups, use this. -->
+  <link rel="stylesheet" type="text/css" href="https://uicdn.toast.com/tui.date-picker/latest/tui-date-picker.css" />
+  <link rel="stylesheet" type="text/css" href="https://uicdn.toast.com/tui.time-picker/latest/tui-time-picker.css" />
+</head>
+<body>
 {% if user.is_authenticated %}
   Hi {{ user.username }}!
   <p><a href="{% url 'logout' %}">Log Out</a></p>
+  <script src="https://unpkg.com/react@17/umd/react.development.js" crossorigin></script>
+  <script src="https://uicdn.toast.com/tui.code-snippet/latest/tui-code-snippet.min.js"></script>
+  <script src="https://uicdn.toast.com/tui.time-picker/latest/tui-time-picker.min.js"></script>
+  <script src="https://uicdn.toast.com/tui.date-picker/latest/tui-date-picker.min.js"></script>
+  <script src="https://uicdn.toast.com/tui-calendar/latest/tui-calendar.js"></script>
+  <!-- Main Quill library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="//cdn.quilljs.com/1.3.6/quill.js"></script>
+  <script src="//cdn.quilljs.com/1.3.6/quill.min.js"></script>
+  <script src="{% static 'js/calculate.js' %}"></script>
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script>
+import React, { useCallback, useRef } from "react";
+import { render } from "react-dom";
+
+import TUICalendar from "@toast-ui/react-calendar";
+import { ISchedule, ICalendarInfo } from "tui-calendar";
+
+import "tui-calendar/dist/tui-calendar.css";
+import "tui-date-picker/dist/tui-date-picker.css";
+import "tui-time-picker/dist/tui-time-picker.css";
+
+import "./styles.css";
+
+const start = new Date();
+const end = new Date(new Date().setMinutes(start.getMinutes() + 30));
+const schedules: ISchedule[] = [
+  {
+    calendarId: "1",
+    category: "time",
+    isVisible: true,
+    title: "Study",
+    id: "1",
+    body: "Test",
+    start,
+    end
+  },
+  {
+    calendarId: "2",
+    category: "time",
+    isVisible: true,
+    title: "Meeting",
+    id: "2",
+    body: "Description",
+    start: new Date(new Date().setHours(start.getHours() + 1)),
+    end: new Date(new Date().setHours(start.getHours() + 2))
+  }
+];
+
+const calendars: ICalendarInfo[] = [
+  {
+    id: "1",
+    name: "My Calendar",
+    color: "#ffffff",
+    bgColor: "#9e5fff",
+    dragBgColor: "#9e5fff",
+    borderColor: "#9e5fff"
+  },
+  {
+    id: "2",
+    name: "Company",
+    color: "#ffffff",
+    bgColor: "#00a9ff",
+    dragBgColor: "#00a9ff",
+    borderColor: "#00a9ff"
+  }
+];
+
+function App() {
+  const cal = useRef(null);
+
+  const onClickSchedule = useCallback((e) => {
+    const { calendarId, id } = e.schedule;
+    const el = cal.current.calendarInst.getElement(id, calendarId);
+
+    console.log(e, el.getBoundingClientRect());
+  }, []);
+
+  const onBeforeCreateSchedule = useCallback((scheduleData) => {
+    console.log(scheduleData);
+
+    const schedule = {
+      id: String(Math.random()),
+      title: scheduleData.title,
+      isAllDay: scheduleData.isAllDay,
+      start: scheduleData.start,
+      end: scheduleData.end,
+      category: scheduleData.isAllDay ? "allday" : "time",
+      dueDateClass: "",
+      location: scheduleData.location,
+      raw: {
+        class: scheduleData.raw["class"]
+      },
+      state: scheduleData.state
+    };
+
+    cal.current.calendarInst.createSchedules([schedule]);
+  }, []);
+
+  const onBeforeDeleteSchedule = useCallback((res) => {
+    console.log(res);
+
+    const { id, calendarId } = res.schedule;
+
+    cal.current.calendarInst.deleteSchedule(id, calendarId);
+  }, []);
+
+  const onBeforeUpdateSchedule = useCallback((e) => {
+    console.log(e);
+
+    const { schedule, changes } = e;
+
+    cal.current.calendarInst.updateSchedule(
+      schedule.id,
+      schedule.calendarId,
+      changes
+    );
+  }, []);
+
+  function _getFormattedTime(time) {
+    const date = new Date(time);
+    const h = date.getHours();
+    const m = date.getMinutes();
+
+    return `${h}:${m}`;
+  }
+
+  function _getTimeTemplate(schedule, isAllDay) {
+    var html = [];
+
+    if (!isAllDay) {
+      html.push("<strong>" + _getFormattedTime(schedule.start) + "</strong> ");
+    }
+    if (schedule.isPrivate) {
+      html.push('<span class="calendar-font-icon ic-lock-b"></span>');
+      html.push(" Private");
+    } else {
+      if (schedule.isReadOnly) {
+        html.push('<span class="calendar-font-icon ic-readonly-b"></span>');
+      } else if (schedule.recurrenceRule) {
+        html.push('<span class="calendar-font-icon ic-repeat-b"></span>');
+      } else if (schedule.attendees.length) {
+        html.push('<span class="calendar-font-icon ic-user-b"></span>');
+      } else if (schedule.location) {
+        html.push('<span class="calendar-font-icon ic-location-b"></span>');
+      }
+      html.push(" " + schedule.title);
+    }
+
+    return html.join("");
+  }
+
+  const templates = {
+    time: function (schedule) {
+      console.log(schedule);
+      return _getTimeTemplate(schedule, false);
+    }
+  };
+
+  return (
+    <div className="App">
+      <h1>Welcome to TOAST Ui Calendar</h1>
+
+      <TUICalendar
+        ref={cal}
+        height="1000px"
+        view="week"
+        useCreationPopup={true}
+        useDetailPopup={true}
+        template={templates}
+        calendars={calendars}
+        schedules={schedules}
+        onClickSchedule={onClickSchedule}
+        onBeforeCreateSchedule={onBeforeCreateSchedule}
+        onBeforeDeleteSchedule={onBeforeDeleteSchedule}
+        onBeforeUpdateSchedule={onBeforeUpdateSchedule}
+      />
+    </div>
+  );
+}
+
+const rootElement = document.getElementById("root");
+render(<App />, rootElement);
+</script>
+  <!-- Theme included stylesheets -->
+
+  <div id="standalone-container" style="width:40%;display:block;margin:auto;">
+    <div class="editor ql-container ql-snow" id="full-editor"></div>
+  </div>
+  <br>
+  <br>
+  <div class="container" style="display:block;margin:auto;">
+    <div class="col-md-4 col-md-offset-4 calculator" align="center">
+      <div class="row displayBox">
+        <p class="displayText" id="display">0</p>
+      </div>
+      <div class="row numberPad">
+        <div class="col-md-9">
+          <div class="row">
+            <button class="btn clear hvr-back-pulse" id="clear">C</button>
+            <button class="btn btn-calc hvr-radial-out" id="sqrt">√</button>
+            <button class="btn btn-calc hvr-radial-out hvr-radial-out" id="square">x<sup>2</sup></button>
+          </div>
+          <div class="row">
+            <button class="btn btn-calc hvr-radial-out" id="seven">7</button>
+            <button class="btn btn-calc hvr-radial-out" id="eight">8</button>
+            <button class="btn btn-calc hvr-radial-out" id="nine">9</button>
+          </div>
+          <div class="row">
+            <button class="btn btn-calc hvr-radial-out" id="four">4</button>
+            <button class="btn btn-calc hvr-radial-out" id="five">5</button>
+            <button class="btn btn-calc hvr-radial-out" id="six">6</button>
+          </div>
+          <div class="row">
+            <button class="btn btn-calc hvr-radial-out" id="one">1</button>
+            <button class="btn btn-calc hvr-radial-out" id="two">2</button>
+            <button class="btn btn-calc hvr-radial-out" id="three">3</button>
+          </div>
+          <div class="row">
+            <button class="btn btn-calc hvr-radial-out" id="plus_minus">&#177;</button>
+            <button class="btn btn-calc hvr-radial-out" id="zero">0</button>
+            <button class="btn btn-calc hvr-radial-out" id="decimal">.</button>
+          </div>
+        </div>
+        <div class="col-md-3 operationSide">
+          <button id="divide" class="btn btn-operation hvr-fade">÷</button>
+          <button id="multiply" class="btn btn-operation hvr-fade">×</button>
+          <button id="subtract" class="btn btn-operation hvr-fade">−</button>
+          <button id="add" class="btn btn-operation hvr-fade">+</button>
+          <button id="equals" class="btn btn-operation equals hvr-back-pulse">=</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <br>
+  <div id="menu">
+        <span id="menu-navi">
+          <button type="button" class="btn btn-default btn-sm move-today" data-action="move-today">Today</button>
+          <button type="button" class="btn btn-default btn-sm move-day" data-action="move-prev">
+            <i class="calendar-icon ic-arrow-line-left" data-action="move-prev"></i>
+          </button>
+          <button type="button" class="btn btn-default btn-sm move-day" data-action="move-next">
+            <i class="calendar-icon ic-arrow-line-right" data-action="move-next"></i>
+          </button>
+        </span>
+        <span id="renderRange" class="render-range"></span>
+  </div>
+  <div id="root" style="height: 800px;"></div>
+</body>
+
+<script>
+        var toolbarOptions = [
+            ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+            ['blockquote', 'code-block'],
+            [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+            [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+            [{ 'direction': 'rtl' }],                         // text direction
+
+            [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+
+            [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+            [{ 'font': [] }],
+            [{ 'align': [] }],
+
+            ['clean']                                         // remove formatting button
+          ];
+        var fullEditor = new Quill('#full-editor', {
+          modules: {
+            'toolbar': toolbarOptions,
+            'link-tooltip': true
+          },
+          theme: 'snow'
+        });
+
+        //fullEditor.addModule('toolbar', {container: '#full-toolbar'});
+
+
+</script>
 {% else %}
   <p>You are not logged in</p>
   <a href="{% url 'login' %}">Log In</a>
